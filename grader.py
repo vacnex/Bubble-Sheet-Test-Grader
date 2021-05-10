@@ -4,24 +4,54 @@ import imutils.perspective
 import imutils
 from PIL import Image
 
+# 1: 1 col 4 ans
+# 2: 1 col 5 ans
+# 3: 2 col 4 ans
+# 4: 2 col 5 ans
 
 def main():
-    ANSWER_KEY = {
-        0: 2,
-        1: 4,
-        2: 0,
-        3: 2,
-        4: 1
-    }
     preProcess_img = preProcess(3)
     biggestCnts = findBiggestCnts(preProcess_img)
     cropBigest = cropBiggestCnts(biggestCnts, preProcess_img[1])
     threshCropped = threshCroppedImage(cropBigest)
     threshCnts = findThreshCnts(threshCropped, cropBigest)
     questionCnts = findQuestionCnts(threshCnts, cropBigest)
-    CorectAnswer = drawCorectAnswer(
-        ANSWER_KEY, questionCnts, threshCropped, cropBigest)
+    # h = cropBigest.shape[0]
+    # w = cropBigest.shape[1]
+    # cv2.imshow("cropped", cropBigest[0:h, 0: round(w / 2)])
+    # cv2.imshow("cropped2", cropBigest[0:h, round(w/2):w])
+    # Debug(questionCnts, cropBigest)
+    showResult(questionCnts, threshCropped, cropBigest)
 
+# region ANSWER_TYPE
+def ANSWER_TYPE():
+    ANSWER_TYPE_1 = {
+        0: 2,
+        1: 4,
+        2: 0,
+        3: 2,
+        4: 1,
+    }
+    ANSWER_TYPE_2 = {
+        0: 2,
+        1: 3,
+        2: 0,
+        3: 2,
+        4: 1,
+    }
+    return ANSWER_TYPE_1, ANSWER_TYPE_2
+# endregion
+
+# region showResult
+def showResult(questionCnts, threshCropped, cropBigest, Type=1):
+    correctAnswer = ANSWER_TYPE()
+    if (Type == 1):
+        drawCorectAnswer(
+            correctAnswer[0], questionCnts, threshCropped, cropBigest)
+    elif (Type == 2):
+        drawCorectAnswer(
+            correctAnswer[1], questionCnts, threshCropped, cropBigest,2)
+# endregion
 
 # region preProcess
 def preProcess(image, view_Result=False):
@@ -31,7 +61,7 @@ def preProcess(image, view_Result=False):
         3: 'Image/bs3.png',
         4: 'Image/bs4.jpg',
         5: 'Image/bs5.jpg',
-        6: 'Image/bs6.jpg'
+        6: 'Image/bs6.png'
     }
     sel_image = switcher.get(image, "No Image")
     org_img = cv2.imread(sel_image)
@@ -133,7 +163,7 @@ def findQuestionCnts(thesh_cnts, cropped_image, view_Result=False):
         return questionCnts
 # endregion
 
-# region sort
+# region get_contour_precedence
 def get_contour_precedence(contour, cols):
     tolerance_factor = 10
     origin = cv2.boundingRect(contour)
@@ -141,14 +171,30 @@ def get_contour_precedence(contour, cols):
 # endregion
 
 # region drawCorectAnswer
-def drawCorectAnswer(ANSWER_KEY, question_Cnts, thresh_Image, org_Image):
+def drawCorectAnswer(ANSWER_KEY, question_Cnts, thresh_Image, org_Image, Exam_type=1):
+    ans_num = 0
+    col = 0
+    if Exam_type == 1:
+        ans_num = 5
+        col = 1
+    elif Exam_type == 2:
+        ans_num = 4
+        col = 1
+    # elif Exam_type == 3:
+    #     ans_num = 5
+    #     col = 1
+    # elif Exam_type == 4:
+    #     ans_num = 5
+    #     col = 2
+
     question_Cnts.sort(
         key=lambda x: get_contour_precedence(x, thresh_Image.shape[1]))
     correct = 0
-    for (q, i) in enumerate(np.arange(0, len(question_Cnts), 5)):
+
+    for (q, i) in enumerate(np.arange(0, len(question_Cnts), ans_num)):
         bubbled = None
-        newQuestionCnts = question_Cnts[i:i + 5]
-        for (j, c) in enumerate(newQuestionCnts):
+        AnsCnts = question_Cnts[i:i + ans_num]
+        for (j, c) in enumerate(AnsCnts):
             mask = np.zeros(thresh_Image.shape, dtype="uint8")
             cv2.drawContours(mask, [c], -1, 255, -1)
             mask = cv2.bitwise_and(thresh_Image, thresh_Image, mask=mask)
@@ -160,18 +206,20 @@ def drawCorectAnswer(ANSWER_KEY, question_Cnts, thresh_Image, org_Image):
         if k == bubbled[1]:
             color = (0, 255, 0)
             correct += 1
-        cv2.drawContours(org_Image, [newQuestionCnts[k]], -1, color, 3)
-    cv2.imshow("Result", org_Image)
+        cv2.drawContours(org_Image, [AnsCnts[k]], -1, color, 3)
+    cv2.imshow('Result', org_Image)
 # endregion
 
 # region Debug
 def Debug(Cnts, image):
+    img = image.copy()
+    Cnts.sort(
+        key=lambda x: get_contour_precedence(x, image.shape[1]))
     for i in range(len(Cnts)):
-        cv2.putText(image, str(i), cv2.boundingRect(Cnts[i])[
+        cv2.putText(img, str(i), cv2.boundingRect(Cnts[i])[
             :2], cv2.FONT_HERSHEY_COMPLEX, 1, [125])
-        cv2.imshow("Debug", image)
+        cv2.imshow("Debug", img)
 # endregion
-
 
 main()
 cv2.waitKey()
