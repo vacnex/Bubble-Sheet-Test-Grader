@@ -10,7 +10,7 @@ from PIL import Image
 # 4: 2 col 5 ans
 
 def main():
-    preProcess_img = preProcess(3)
+    preProcess_img = preProcess(7)
     biggestCnts = findBiggestCnts(preProcess_img)
     cropBigest = cropBiggestCnts(biggestCnts, preProcess_img[1])
     threshCropped = threshCroppedImage(cropBigest)
@@ -20,7 +20,7 @@ def main():
     # w = cropBigest.shape[1]
     # cv2.imshow("cropped", cropBigest[0:h, 0: round(w / 2)])
     # cv2.imshow("cropped2", cropBigest[0:h, round(w/2):w])
-    # Debug(questionCnts, cropBigest)
+    Debug(questionCnts, cropBigest)
     showResult(questionCnts, threshCropped, cropBigest)
 
 # region ANSWER_TYPE
@@ -39,7 +39,19 @@ def ANSWER_TYPE():
         3: 2,
         4: 1,
     }
-    return ANSWER_TYPE_1, ANSWER_TYPE_2
+    ANSWER_TYPE_6 = {
+        0: 0,
+        1: 3,
+        2: 1,
+        3: 0,
+        4: 3,
+        5: 0,
+        6: 3,
+        7: 0,
+        8: 2,
+        9: 3,
+    }
+    return ANSWER_TYPE_1, ANSWER_TYPE_2, ANSWER_TYPE_6
 # endregion
 
 # region showResult
@@ -47,7 +59,7 @@ def showResult(questionCnts, threshCropped, cropBigest, Type=1):
     correctAnswer = ANSWER_TYPE()
     if (Type == 1):
         drawCorectAnswer(
-            correctAnswer[0], questionCnts, threshCropped, cropBigest)
+            correctAnswer[2], questionCnts, threshCropped, cropBigest)
     elif (Type == 2):
         drawCorectAnswer(
             correctAnswer[1], questionCnts, threshCropped, cropBigest,2)
@@ -61,7 +73,8 @@ def preProcess(image, view_Result=False):
         3: 'Image/bs3.png',
         4: 'Image/bs4.jpg',
         5: 'Image/bs5.jpg',
-        6: 'Image/bs6.png'
+        6: 'Image/bs6.png',
+        7: 'Image/bs7.png'
     }
     sel_image = switcher.get(image, "No Image")
     org_img = cv2.imread(sel_image)
@@ -175,10 +188,10 @@ def drawCorectAnswer(ANSWER_KEY, question_Cnts, thresh_Image, org_Image, Exam_ty
     ans_num = 0
     col = 0
     if Exam_type == 1:
-        ans_num = 5
+        ans_num = 4
         col = 1
     elif Exam_type == 2:
-        ans_num = 4
+        ans_num = 5
         col = 1
     # elif Exam_type == 3:
     #     ans_num = 5
