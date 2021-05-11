@@ -224,14 +224,21 @@ def drawCorectAnswer(ANSWER_KEY, question_Cnts, thresh_Image, org_Image, Exam_ty
 # endregion
 
 # region Debug
-def Debug(Cnts, image):
+def Debug(Cnts, image, sort=True):
     img = image.copy()
-    Cnts.sort(
-        key=lambda x: get_contour_precedence(x, image.shape[1]))
-    for i in range(len(Cnts)):
-        cv2.putText(img, str(i), cv2.boundingRect(Cnts[i])[
-            :2], cv2.FONT_HERSHEY_COMPLEX, 1, [125])
-        cv2.imshow("Debug", img)
+    if (sort == False):
+        for i in range(len(Cnts)):
+            cv2.putText(img, str(i),
+            cv2.boundingRect(Cnts[i])[:2],
+            cv2.FONT_HERSHEY_COMPLEX, 1,[125])
+            cv2.imshow("Deubug", img)
+    else:
+        Cnts.sort(
+            key=lambda x: get_contour_precedence(x, image.shape[1]))
+        for i in range(len(Cnts)):
+            cv2.putText(img, str(i), cv2.boundingRect(Cnts[i])[
+                :2], cv2.FONT_HERSHEY_COMPLEX, 1, [125])
+            cv2.imshow("Debug", img)
 # endregion
 
 main()
