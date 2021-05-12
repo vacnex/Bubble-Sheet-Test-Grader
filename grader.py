@@ -1,8 +1,8 @@
 import cv2
 import numpy as np
-import imutils.perspective
-import imutils
-from PIL import Image
+# import imutils.perspective
+# import imutils
+# from PIL import Image
 
 # 1: 1 col 4 ans
 # 2: 1 col 5 ans
@@ -15,31 +15,31 @@ def main():
     cropBigest = cropBiggestCnts(biggestCnts, preProcess_img[1])
     threshCropped = threshCroppedImage(cropBigest)
     threshCnts = findThreshCnts(threshCropped, cropBigest)
-    questionCnts = findQuestionCnts(threshCnts, cropBigest)
+    ansCnts = findAnsCnts(threshCnts, cropBigest)
     # h = cropBigest.shape[0]
     # w = cropBigest.shape[1]
     # cv2.imshow("cropped", cropBigest[0:h, 0: round(w / 2)])
     # cv2.imshow("cropped2", cropBigest[0:h, round(w/2):w])
-    Debug(questionCnts, cropBigest)
-    showResult(questionCnts, threshCropped, cropBigest)
+    # Debug(questionCnts, cropBigest)
+    showResult(ansCnts, threshCropped, cropBigest)
 
 # region ANSWER_TYPE
 def ANSWER_TYPE():
-    ANSWER_TYPE_1 = {
+    CorrectAnswer3 = {
         0: 2,
         1: 4,
         2: 0,
         3: 2,
         4: 1,
     }
-    ANSWER_TYPE_2 = {
+    CorrectAnswer6 = {
         0: 2,
         1: 3,
         2: 0,
         3: 2,
         4: 1,
     }
-    ANSWER_TYPE_6 = {
+    CorrectAnswer7 = {
         0: 0,
         1: 3,
         2: 1,
@@ -51,7 +51,7 @@ def ANSWER_TYPE():
         8: 2,
         9: 3,
     }
-    return ANSWER_TYPE_1, ANSWER_TYPE_2, ANSWER_TYPE_6
+    return CorrectAnswer3, CorrectAnswer6, CorrectAnswer7
 # endregion
 
 # region showResult
@@ -161,19 +161,19 @@ def findThreshCnts(thresh_Image, cropped_image,  view_Result=False):
 # endregion
 
 # region findQuestionCnts
-def findQuestionCnts(thesh_cnts, cropped_image, view_Result=False):
-    questionCnts = []
+def findAnsCnts(thesh_cnts, cropped_image, view_Result=False):
+    ansCnts = []
     for c in thesh_cnts:
         (x, y, w, h) = cv2.boundingRect(c)
         ar = w / float(h)
         if w >= 20 and h >= 20 and ar >= 0.8 and ar <= 1.2:
-            questionCnts.append(c)
+            ansCnts.append(c)
     if view_Result:
-        cv2.drawContours(cropped_image, questionCnts, -1, (0, 255, 0), 3)
+        cv2.drawContours(cropped_image, ansCnts, -1, (0, 255, 0), 3)
         cv2.imshow("QuestionCnts_Result", cropped_image)
-        return questionCnts
+        return ansCnts
     else:
-        return questionCnts
+        return ansCnts
 # endregion
 
 # region get_contour_precedence
@@ -184,7 +184,7 @@ def get_contour_precedence(contour, cols):
 # endregion
 
 # region drawCorectAnswer
-def drawCorectAnswer(ANSWER_KEY, question_Cnts, thresh_Image, org_Image, Exam_type=1):
+def drawCorectAnswer(ANSWER_KEY, ans_Cnts, thresh_Image, org_Image, Exam_type=1):
     ans_num = 0
     col = 0
     if Exam_type == 1:
@@ -200,17 +200,18 @@ def drawCorectAnswer(ANSWER_KEY, question_Cnts, thresh_Image, org_Image, Exam_ty
     #     ans_num = 5
     #     col = 2
 
-    question_Cnts.sort(
+    ans_Cnts.sort(
         key=lambda x: get_contour_precedence(x, thresh_Image.shape[1]))
     correct = 0
 
-    for (q, i) in enumerate(np.arange(0, len(question_Cnts), ans_num)):
+    for (q, i) in enumerate(np.arange(0, len(ans_Cnts), ans_num)):
         bubbled = None
-        AnsCnts = question_Cnts[i:i + ans_num]
+        AnsCnts = ans_Cnts[i:i + ans_num]
         for (j, c) in enumerate(AnsCnts):
             mask = np.zeros(thresh_Image.shape, dtype="uint8")
             cv2.drawContours(mask, [c], -1, 255, -1)
             mask = cv2.bitwise_and(thresh_Image, thresh_Image, mask=mask)
+            cv2.imshow(str(c), mask)
             total = cv2.countNonZero(mask)
             if bubbled is None or total > bubbled[0]:
                 bubbled = (total, j)
