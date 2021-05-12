@@ -211,7 +211,7 @@ def drawCorectAnswer(ANSWER_KEY, ans_Cnts, thresh_Image, org_Image, Exam_type=1)
             mask = np.zeros(thresh_Image.shape, dtype="uint8")
             cv2.drawContours(mask, [c], -1, 255, -1)
             mask = cv2.bitwise_and(thresh_Image, thresh_Image, mask=mask)
-            cv2.imshow(str(c), mask)
+            # cv2.imshow(str, mask)
             total = cv2.countNonZero(mask)
             if bubbled is None or total > bubbled[0]:
                 bubbled = (total, j)
